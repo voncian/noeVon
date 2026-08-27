@@ -110,12 +110,6 @@
       'stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
   }
 
-  function exerciseThumbHTML(part, group, name, icon) {
-    var photo = getExercisePhoto(part, group, name);
-    if (photo) return '<img src="' + photo + '" alt="">';
-    return iconSVG(icon);
-  }
-
   /* ---------------------------------------------------------------
    * 운동 종목 계층 구조: 부위(상체/하체) -> 근육 그룹 -> 종목
    * ------------------------------------------------------------- */
@@ -183,7 +177,6 @@
   var LS_CUSTOM = "wc_custom_exercises";
   var LS_HISTORY = "wc_history";
   var LS_LAST_SETTINGS = "wc_last_settings";
-  var LS_PHOTOS = "wc_exercise_photos";
 
   /* ---------------------------------------------------------------
    * localStorage helpers
@@ -232,59 +225,6 @@
     }
     return groups;
   }
-  function getAllExercisesFlat() {
-    var list = [];
-    Object.keys(EXERCISE_DATA).forEach(function (part) {
-      getGroups(part).forEach(function (group) {
-        getExercises(part, group).forEach(function (ex) {
-          list.push({ part: part, group: group, name: ex.name, icon: ex.icon });
-        });
-      });
-    });
-    return list;
-  }
-
-  function photoKey(part, group, name) {
-    return part + "||" + group + "||" + name;
-  }
-  function getExercisePhoto(part, group, name) {
-    var photos = loadJSON(LS_PHOTOS, {});
-    return photos[photoKey(part, group, name)] || null;
-  }
-  function saveExercisePhoto(part, group, name, dataURL) {
-    var photos = loadJSON(LS_PHOTOS, {});
-    photos[photoKey(part, group, name)] = dataURL;
-    saveJSON(LS_PHOTOS, photos);
-  }
-
-  function compressImageFile(file) {
-    return new Promise(function (resolve, reject) {
-      var reader = new FileReader();
-      reader.onload = function () {
-        var img = new Image();
-        img.onload = function () {
-          var maxDim = 240;
-          var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-          var w = Math.max(1, Math.round(img.width * scale));
-          var h = Math.max(1, Math.round(img.height * scale));
-          var canvas = document.createElement("canvas");
-          canvas.width = w;
-          canvas.height = h;
-          var ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, w, h);
-          try {
-            resolve(canvas.toDataURL("image/jpeg", 0.75));
-          } catch (e) {
-            reject(e);
-          }
-        };
-        img.onerror = function () { reject(new Error("image load failed")); };
-        img.src = reader.result;
-      };
-      reader.onerror = function () { reject(new Error("file read failed")); };
-      reader.readAsDataURL(file);
-    });
-  }
 
   function getHistory() { return loadJSON(LS_HISTORY, []); }
   function saveHistoryRecord(record) {
@@ -321,9 +261,7 @@
     isResting: false,
     remaining: 0,
     timerId: null,
-    startedAt: null,
-    pendingPhoto: null,
-    photoSearch: ""
+    startedAt: null
   };
 
   var SETS_MIN = 1, SETS_MAX = 10;
@@ -391,7 +329,7 @@
    * Screen switching
    * ------------------------------------------------------------- */
   var screens = {};
-  ["home", "photo", "setup", "workout", "complete", "history"].forEach(function (name) {
+  ["home", "setup", "workout", "complete", "history"].forEach(function (name) {
     screens[name] = document.getElementById("screen-" + name);
   });
   var bottomNav = document.getElementById("bottom-nav");
@@ -506,8 +444,7 @@
       var ehtml = '<div class="exercise-list">';
       exercises.forEach(function (ex) {
         ehtml += '<div class="exercise-row" data-exercise="' + ex.name + '" data-icon="' + ex.icon + '">' +
-          '<span class="exercise-row-main"><span class="ex-icon sm ' + partCls + '">' +
-          exerciseThumbHTML(state.part, state.group, ex.name, ex.icon) + '</span>' +
+          '<span class="exercise-row-main"><span class="ex-icon sm ' + partCls + '">' + iconSVG(ex.icon) + '</span>' +
           '<span class="exercise-name">' + ex.name + '</span></span><span class="chevron">›</span></div>';
       });
       ehtml += '</div>' +
@@ -533,135 +470,6 @@
         if (e.key === "Enter") document.getElementById("add-exercise-btn").click();
       });
     }
-  }
-
-  /* ---------------------------------------------------------------
-   * PHOTO (사진으로 종목 찾기/추가)
-   * ------------------------------------------------------------- */
-  var photoContent = document.getElementById("photo-content");
-  var photoInput = document.getElementById("photo-input");
-
-  document.getElementById("home-photo-btn").addEventListener("click", function () {
-    photoInput.click();
-  });
-
-  photoInput.addEventListener("change", function (e) {
-    var file = e.target.files && e.target.files[0];
-    e.target.value = "";
-    if (!file) return;
-    compressImageFile(file).then(function (dataURL) {
-      state.pendingPhoto = dataURL;
-      state.photoSearch = "";
-      renderPhotoMatch();
-      showScreen("photo");
-    }).catch(function () {
-      alert("사진을 불러오지 못했어요. 다시 시도해주세요.");
-    });
-  });
-
-  document.getElementById("photo-back-btn").addEventListener("click", function () {
-    state.pendingPhoto = null;
-    state.homeStep = "part";
-    renderHome();
-    showScreen("home");
-  });
-
-  function renderPhotoMatch() {
-    var all = getAllExercisesFlat();
-    var q = state.photoSearch.trim().toLowerCase();
-    var filtered = q
-      ? all.filter(function (ex) {
-          return ex.name.toLowerCase().indexOf(q) !== -1 ||
-            ex.group.toLowerCase().indexOf(q) !== -1 ||
-            ex.part.toLowerCase().indexOf(q) !== -1;
-        })
-      : all;
-
-    var listHTML = filtered.length
-      ? filtered.map(function (ex) {
-          var cls = PART_META[ex.part].cls;
-          return '<div class="exercise-row" data-part="' + ex.part + '" data-group="' + ex.group +
-            '" data-exercise="' + ex.name + '" data-icon="' + ex.icon + '">' +
-            '<span class="exercise-row-main"><span class="ex-icon sm ' + cls + '">' +
-            exerciseThumbHTML(ex.part, ex.group, ex.name, ex.icon) + '</span>' +
-            '<span class="exercise-row-text"><span class="exercise-name">' + ex.name + '</span>' +
-            '<span class="exercise-row-subtitle">' + ex.part + ' · ' + ex.group + '</span></span></span>' +
-            '<span class="chevron">›</span></div>';
-        }).join("")
-      : '<div class="search-empty">검색 결과가 없어요</div>';
-
-    var partOptions = Object.keys(EXERCISE_DATA).map(function (p) {
-      return '<option value="' + p + '">' + p + '</option>';
-    }).join("");
-    var defaultPart = Object.keys(EXERCISE_DATA)[0];
-    var groupOptions = getGroups(defaultPart).map(function (g) {
-      return '<option value="' + g + '">' + g + '</option>';
-    }).join("");
-
-    photoContent.innerHTML =
-      '<div class="photo-preview-card"><img src="' + state.pendingPhoto + '" alt="첨부한 사진">' +
-      '<div class="photo-preview-text"><div class="photo-preview-title">어떤 종목인가요?</div>' +
-      '<div class="photo-preview-desc">목록에서 찾아 탭하면 바로 이 종목으로 이동해요</div></div></div>' +
-      '<input type="text" id="photo-search-input" class="search-input" placeholder="종목 검색 (예: 벤치프레스)" value="' +
-      state.photoSearch.replace(/"/g, "&quot;") + '">' +
-      '<div class="exercise-list" id="photo-results">' + listHTML + '</div>' +
-      '<div class="section-divider">또는</div>' +
-      '<div class="add-new-section">' +
-      '<div class="add-new-title">목록에 없는 종목이에요</div>' +
-      '<div class="add-new-desc">부위와 그룹을 선택해 새 종목으로 추가하세요</div>' +
-      '<div class="select-row">' +
-      '<select id="photo-add-part">' + partOptions + '</select>' +
-      '<select id="photo-add-group">' + groupOptions + '</select>' +
-      '</div>' +
-      '<input type="text" id="photo-add-name" placeholder="종목 이름 입력 (예: 케틀벨 스윙)">' +
-      '<button class="btn-primary" id="photo-add-confirm-btn" type="button">추가하고 시작하기</button>' +
-      '</div>';
-
-    var searchInput = document.getElementById("photo-search-input");
-    searchInput.addEventListener("input", function () {
-      state.photoSearch = searchInput.value;
-      renderPhotoMatch();
-      var newInput = document.getElementById("photo-search-input");
-      newInput.focus();
-      newInput.setSelectionRange(newInput.value.length, newInput.value.length);
-    });
-
-    photoContent.querySelectorAll("#photo-results .exercise-row").forEach(function (el) {
-      el.addEventListener("click", function () {
-        selectExistingFromPhoto(el.dataset.part, el.dataset.group, el.dataset.exercise, el.dataset.icon);
-      });
-    });
-
-    var addPartSelect = document.getElementById("photo-add-part");
-    var addGroupSelect = document.getElementById("photo-add-group");
-    addPartSelect.addEventListener("change", function () {
-      addGroupSelect.innerHTML = getGroups(addPartSelect.value).map(function (g) {
-        return '<option value="' + g + '">' + g + '</option>';
-      }).join("");
-    });
-    document.getElementById("photo-add-confirm-btn").addEventListener("click", function () {
-      var name = document.getElementById("photo-add-name").value.trim();
-      if (!name) {
-        document.getElementById("photo-add-name").focus();
-        return;
-      }
-      var part = addPartSelect.value;
-      var group = addGroupSelect.value;
-      addCustomExercise(part, group, name);
-      if (state.pendingPhoto) saveExercisePhoto(part, group, name, state.pendingPhoto);
-      state.pendingPhoto = null;
-      state.part = part;
-      state.group = group;
-      selectExercise(name, "custom");
-    });
-  }
-
-  function selectExistingFromPhoto(part, group, name, icon) {
-    if (state.pendingPhoto) saveExercisePhoto(part, group, name, state.pendingPhoto);
-    state.pendingPhoto = null;
-    state.part = part;
-    state.group = group;
-    selectExercise(name, icon);
   }
 
   /* ---------------------------------------------------------------
@@ -699,7 +507,7 @@
     setupBreadcrumb.textContent = state.part + " · " + state.group;
     var setupIconEl = document.getElementById("setup-exercise-icon");
     setupIconEl.className = "ex-icon lg " + PART_META[state.part].cls;
-    setupIconEl.innerHTML = exerciseThumbHTML(state.part, state.group, state.exercise, state.exerciseIcon);
+    setupIconEl.innerHTML = iconSVG(state.exerciseIcon);
     setupContent.innerHTML =
       stepperCardHTML("sets", "세트 수", state.sets, "세트", SETS_MIN, SETS_MAX, 1) +
       stepperCardHTML("reps", "목표 횟수 (1세트당)", state.reps, "회", REPS_MIN, REPS_MAX, 1) +
@@ -781,7 +589,7 @@
     workoutBreadcrumb.textContent = state.part + " · " + state.group;
     var workoutIconEl = document.getElementById("workout-exercise-icon");
     workoutIconEl.className = "ex-icon lg " + PART_META[state.part].cls;
-    workoutIconEl.innerHTML = exerciseThumbHTML(state.part, state.group, state.exercise, state.exerciseIcon);
+    workoutIconEl.innerHTML = iconSVG(state.exerciseIcon);
 
     var dots = "";
     for (var i = 1; i <= state.sets; i++) {
