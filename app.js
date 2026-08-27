@@ -2,20 +2,170 @@
   "use strict";
 
   /* ---------------------------------------------------------------
+   * 종목별 아이콘 (동작 유형별 픽토그램, 오프라인에서도 동작하도록 인라인 SVG)
+   * ------------------------------------------------------------- */
+  var ICON_PATHS = {
+    bench:
+      '<circle cx="9" cy="26" r="3.4"/><line x1="12" y1="28" x2="30" y2="28"/>' +
+      '<line x1="18" y1="28" x2="16" y2="12"/><line x1="24" y1="28" x2="30" y2="12"/>' +
+      '<line x1="12" y1="10" x2="36" y2="10"/>' +
+      '<circle cx="10" cy="10" r="3.2" fill="currentColor" stroke="none"/>' +
+      '<circle cx="38" cy="10" r="3.2" fill="currentColor" stroke="none"/>' +
+      '<line x1="8" y1="31" x2="34" y2="31"/><line x1="12" y1="31" x2="12" y2="40"/>' +
+      '<line x1="30" y1="31" x2="30" y2="40"/>',
+    fly:
+      '<circle cx="9" cy="26" r="3.4"/><line x1="12" y1="28" x2="30" y2="28"/>' +
+      '<line x1="18" y1="28" x2="8" y2="18"/><line x1="24" y1="28" x2="34" y2="18"/>' +
+      '<circle cx="6" cy="16" r="3.2" fill="currentColor" stroke="none"/>' +
+      '<circle cx="36" cy="16" r="3.2" fill="currentColor" stroke="none"/>' +
+      '<line x1="8" y1="31" x2="34" y2="31"/><line x1="12" y1="31" x2="12" y2="40"/>' +
+      '<line x1="30" y1="31" x2="30" y2="40"/>',
+    pushup:
+      '<circle cx="34" cy="16" r="3.4"/><line x1="31" y1="18" x2="10" y2="30"/>' +
+      '<line x1="14" y1="27" x2="14" y2="38"/><line x1="26" y1="21" x2="30" y2="38"/>' +
+      '<line x1="8" y1="38" x2="40" y2="38"/>',
+    deadlift:
+      '<circle cx="15" cy="10" r="3.4"/><line x1="17" y1="13" x2="26" y2="26"/>' +
+      '<line x1="20" y1="17" x2="22" y2="32"/><line x1="26" y1="26" x2="22" y2="40"/>' +
+      '<line x1="26" y1="26" x2="30" y2="40"/><line x1="12" y1="32" x2="34" y2="32"/>' +
+      '<circle cx="10" cy="32" r="3.2" fill="currentColor" stroke="none"/>' +
+      '<circle cx="36" cy="32" r="3.2" fill="currentColor" stroke="none"/>',
+    row:
+      '<circle cx="15" cy="10" r="3.4"/><line x1="17" y1="13" x2="26" y2="26"/>' +
+      '<line x1="20" y1="18" x2="24" y2="22"/><line x1="14" y1="22" x2="32" y2="22"/>' +
+      '<circle cx="12" cy="22" r="3" fill="currentColor" stroke="none"/>' +
+      '<circle cx="34" cy="22" r="3" fill="currentColor" stroke="none"/>' +
+      '<line x1="26" y1="26" x2="22" y2="40"/><line x1="26" y1="26" x2="30" y2="40"/>',
+    pulldown:
+      '<circle cx="24" cy="12" r="3.4"/><line x1="24" y1="15" x2="24" y2="30"/>' +
+      '<line x1="24" y1="17" x2="16" y2="10"/><line x1="24" y1="17" x2="32" y2="10"/>' +
+      '<line x1="13" y1="9" x2="35" y2="9"/>' +
+      '<circle cx="11" cy="9" r="3" fill="currentColor" stroke="none"/>' +
+      '<circle cx="37" cy="9" r="3" fill="currentColor" stroke="none"/>' +
+      '<line x1="16" y1="34" x2="32" y2="34"/><line x1="24" y1="30" x2="18" y2="40"/>' +
+      '<line x1="24" y1="30" x2="28" y2="36"/>',
+    pullup:
+      '<line x1="12" y1="8" x2="36" y2="8"/><line x1="18" y1="8" x2="20" y2="18"/>' +
+      '<line x1="30" y1="8" x2="28" y2="18"/><circle cx="24" cy="21" r="3.4"/>' +
+      '<line x1="24" y1="24" x2="24" y2="34"/><line x1="24" y1="34" x2="19" y2="42"/>' +
+      '<line x1="24" y1="34" x2="27" y2="41"/>',
+    overhead:
+      '<circle cx="24" cy="12" r="3.4"/><line x1="24" y1="15" x2="24" y2="32"/>' +
+      '<line x1="24" y1="17" x2="17" y2="8"/><line x1="24" y1="17" x2="31" y2="8"/>' +
+      '<line x1="13" y1="7" x2="35" y2="7"/>' +
+      '<circle cx="11" cy="7" r="3" fill="currentColor" stroke="none"/>' +
+      '<circle cx="37" cy="7" r="3" fill="currentColor" stroke="none"/>' +
+      '<line x1="24" y1="32" x2="19" y2="42"/><line x1="24" y1="32" x2="29" y2="42"/>',
+    raise:
+      '<circle cx="24" cy="12" r="3.4"/><line x1="24" y1="15" x2="24" y2="32"/>' +
+      '<line x1="24" y1="19" x2="10" y2="17"/><line x1="24" y1="19" x2="38" y2="17"/>' +
+      '<circle cx="8" cy="17" r="3" fill="currentColor" stroke="none"/>' +
+      '<circle cx="40" cy="17" r="3" fill="currentColor" stroke="none"/>' +
+      '<line x1="24" y1="32" x2="19" y2="42"/><line x1="24" y1="32" x2="29" y2="42"/>',
+    curl:
+      '<circle cx="24" cy="12" r="3.4"/><line x1="24" y1="15" x2="24" y2="32"/>' +
+      '<line x1="19" y1="17" x2="19" y2="26"/><line x1="19" y1="26" x2="14" y2="16"/>' +
+      '<circle cx="13" cy="14" r="3.2" fill="currentColor" stroke="none"/>' +
+      '<line x1="29" y1="17" x2="29" y2="30"/><line x1="24" y1="32" x2="19" y2="42"/>' +
+      '<line x1="24" y1="32" x2="29" y2="42"/>',
+    triceps:
+      '<circle cx="24" cy="12" r="3.4"/><line x1="24" y1="15" x2="24" y2="32"/>' +
+      '<line x1="30" y1="17" x2="30" y2="24"/><line x1="30" y1="24" x2="34" y2="32"/>' +
+      '<line x1="34" y1="32" x2="34" y2="8"/><rect x="31" y="4" width="6" height="4" rx="1"/>' +
+      '<line x1="18" y1="17" x2="18" y2="28"/><line x1="24" y1="32" x2="19" y2="42"/>' +
+      '<line x1="24" y1="32" x2="29" y2="42"/>',
+    squat:
+      '<circle cx="24" cy="11" r="3.4"/><line x1="24" y1="14" x2="23" y2="26"/>' +
+      '<line x1="12" y1="13" x2="36" y2="13"/>' +
+      '<circle cx="10" cy="13" r="3" fill="currentColor" stroke="none"/>' +
+      '<circle cx="38" cy="13" r="3" fill="currentColor" stroke="none"/>' +
+      '<polyline points="23,26 17,33 17,42"/><polyline points="23,26 29,33 29,42"/>',
+    legmachine:
+      '<circle cx="14" cy="12" r="3.2"/><line x1="14" y1="15" x2="14" y2="27"/>' +
+      '<line x1="14" y1="27" x2="30" y2="27"/><line x1="30" y1="27" x2="34" y2="20"/>' +
+      '<circle cx="36" cy="17" r="3" fill="currentColor" stroke="none"/>' +
+      '<line x1="10" y1="34" x2="10" y2="27"/><line x1="8" y1="34" x2="20" y2="34"/>',
+    hipthrust:
+      '<circle cx="10" cy="30" r="3.2"/><line x1="12" y1="32" x2="24" y2="24"/>' +
+      '<line x1="24" y1="24" x2="34" y2="32"/><line x1="34" y1="32" x2="34" y2="42"/>' +
+      '<line x1="34" y1="42" x2="40" y2="42"/><rect x="6" y="30" width="8" height="5" rx="1.5"/>' +
+      '<line x1="8" y1="42" x2="20" y2="42"/>',
+    calf:
+      '<circle cx="24" cy="10" r="3.4"/><line x1="24" y1="13" x2="24" y2="30"/>' +
+      '<line x1="24" y1="30" x2="20" y2="38"/><line x1="24" y1="30" x2="28" y2="38"/>' +
+      '<line x1="20" y1="38" x2="22" y2="41"/><line x1="28" y1="38" x2="30" y2="41"/>' +
+      '<line x1="14" y1="41" x2="34" y2="41"/>',
+    core:
+      '<circle cx="10" cy="28" r="3.4"/><line x1="13" y1="28" x2="28" y2="28"/>' +
+      '<line x1="28" y1="28" x2="38" y2="16"/><line x1="8" y1="34" x2="30" y2="34"/>',
+    custom:
+      '<rect x="8" y="19" width="8" height="10" rx="2.5"/>' +
+      '<rect x="32" y="19" width="8" height="10" rx="2.5"/>' +
+      '<line x1="16" y1="24" x2="32" y2="24"/>'
+  };
+
+  function iconSVG(key) {
+    var inner = ICON_PATHS[key] || ICON_PATHS.custom;
+    return '<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.6" ' +
+      'stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
+  }
+
+  /* ---------------------------------------------------------------
    * 운동 종목 계층 구조: 부위(상체/하체) -> 근육 그룹 -> 종목
    * ------------------------------------------------------------- */
   var EXERCISE_DATA = {
     "상체": {
-      "가슴": ["벤치프레스", "인클라인 벤치프레스", "덤벨 플라이", "케이블 크로스오버", "푸시업"],
-      "등": ["데드리프트", "바벨로우", "랫풀다운", "시티드 로우", "풀업"],
-      "어깨": ["오버헤드 프레스", "사이드 레터럴레이즈", "프론트 레이즈", "리어 델트 플라이"],
-      "팔": ["바벨컬", "덤벨컬", "해머컬", "트라이셉스 푸시다운", "딥스"]
+      "가슴": [
+        { name: "벤치프레스", icon: "bench" },
+        { name: "인클라인 벤치프레스", icon: "bench" },
+        { name: "덤벨 플라이", icon: "fly" },
+        { name: "케이블 크로스오버", icon: "fly" },
+        { name: "푸시업", icon: "pushup" }
+      ],
+      "등": [
+        { name: "데드리프트", icon: "deadlift" },
+        { name: "바벨로우", icon: "row" },
+        { name: "랫풀다운", icon: "pulldown" },
+        { name: "시티드 로우", icon: "row" },
+        { name: "풀업", icon: "pullup" }
+      ],
+      "어깨": [
+        { name: "오버헤드 프레스", icon: "overhead" },
+        { name: "사이드 레터럴레이즈", icon: "raise" },
+        { name: "프론트 레이즈", icon: "raise" },
+        { name: "리어 델트 플라이", icon: "raise" }
+      ],
+      "팔": [
+        { name: "바벨컬", icon: "curl" },
+        { name: "덤벨컬", icon: "curl" },
+        { name: "해머컬", icon: "curl" },
+        { name: "트라이셉스 푸시다운", icon: "triceps" },
+        { name: "딥스", icon: "triceps" }
+      ]
     },
     "하체": {
-      "대퇴사두근": ["스쿼트", "프론트 스쿼트", "레그프레스", "레그익스텐션", "런지"],
-      "햄스트링·둔근": ["루마니안 데드리프트", "레그컬", "힙쓰러스트", "불가리안 스플릿 스쿼트"],
-      "종아리": ["스탠딩 카프레이즈", "시티드 카프레이즈"],
-      "코어": ["행잉 레그레이즈", "케이블 크런치", "플랭크"]
+      "대퇴사두근": [
+        { name: "스쿼트", icon: "squat" },
+        { name: "프론트 스쿼트", icon: "squat" },
+        { name: "레그프레스", icon: "squat" },
+        { name: "레그익스텐션", icon: "legmachine" },
+        { name: "런지", icon: "squat" }
+      ],
+      "햄스트링·둔근": [
+        { name: "루마니안 데드리프트", icon: "deadlift" },
+        { name: "레그컬", icon: "legmachine" },
+        { name: "힙쓰러스트", icon: "hipthrust" },
+        { name: "불가리안 스플릿 스쿼트", icon: "squat" }
+      ],
+      "종아리": [
+        { name: "스탠딩 카프레이즈", icon: "calf" },
+        { name: "시티드 카프레이즈", icon: "calf" }
+      ],
+      "코어": [
+        { name: "행잉 레그레이즈", icon: "core" },
+        { name: "케이블 크런치", icon: "core" },
+        { name: "플랭크", icon: "core" }
+      ]
     }
   };
 
@@ -55,8 +205,8 @@
     custom[part] = custom[part] || {};
     custom[part][group] = custom[part][group] || [];
     var all = getExercises(part, group);
-    if (all.indexOf(name) !== -1) return;
-    custom[part][group].push(name);
+    if (all.some(function (ex) { return ex.name === name; })) return;
+    custom[part][group].push({ name: name, icon: "custom" });
     saveJSON(LS_CUSTOM, custom);
   }
   function getExercises(part, group) {
@@ -102,6 +252,7 @@
     part: null,
     group: null,
     exercise: null,
+    exerciseIcon: "custom",
     sets: 3,
     reps: 12,
     rest: 60,
@@ -289,10 +440,12 @@
       homeSubtitle.textContent = state.part + " · 종목을 선택하세요";
       homeBackRow.classList.remove("hidden");
       var exercises = getExercises(state.part, state.group);
+      var partCls = PART_META[state.part].cls;
       var ehtml = '<div class="exercise-list">';
-      exercises.forEach(function (name) {
-        ehtml += '<div class="exercise-row" data-exercise="' + name + '">' +
-          '<span class="exercise-name">' + name + '</span><span class="chevron">›</span></div>';
+      exercises.forEach(function (ex) {
+        ehtml += '<div class="exercise-row" data-exercise="' + ex.name + '" data-icon="' + ex.icon + '">' +
+          '<span class="exercise-row-main"><span class="ex-icon sm ' + partCls + '">' + iconSVG(ex.icon) + '</span>' +
+          '<span class="exercise-name">' + ex.name + '</span></span><span class="chevron">›</span></div>';
       });
       ehtml += '</div>' +
         '<div class="add-exercise-row">' +
@@ -302,7 +455,7 @@
       homeContent.innerHTML = ehtml;
       homeContent.querySelectorAll(".exercise-row").forEach(function (el) {
         el.addEventListener("click", function () {
-          selectExercise(el.dataset.exercise);
+          selectExercise(el.dataset.exercise, el.dataset.icon);
         });
       });
       document.getElementById("add-exercise-btn").addEventListener("click", function () {
@@ -332,8 +485,9 @@
     showScreen("home");
   });
 
-  function selectExercise(name) {
+  function selectExercise(name, icon) {
     state.exercise = name;
+    state.exerciseIcon = icon || "custom";
     var last = getLastSettings(name);
     if (last) {
       state.sets = clamp(last.sets, SETS_MIN, SETS_MAX);
@@ -351,6 +505,9 @@
   function renderSetup() {
     setupExerciseName.textContent = state.exercise;
     setupBreadcrumb.textContent = state.part + " · " + state.group;
+    var setupIconEl = document.getElementById("setup-exercise-icon");
+    setupIconEl.className = "ex-icon lg " + PART_META[state.part].cls;
+    setupIconEl.innerHTML = iconSVG(state.exerciseIcon);
     setupContent.innerHTML =
       stepperCardHTML("sets", "세트 수", state.sets, "세트", SETS_MIN, SETS_MAX, 1) +
       stepperCardHTML("reps", "목표 횟수 (1세트당)", state.reps, "회", REPS_MIN, REPS_MAX, 1) +
@@ -430,6 +587,9 @@
   function renderWorkout() {
     workoutExerciseName.textContent = state.exercise;
     workoutBreadcrumb.textContent = state.part + " · " + state.group;
+    var workoutIconEl = document.getElementById("workout-exercise-icon");
+    workoutIconEl.className = "ex-icon lg " + PART_META[state.part].cls;
+    workoutIconEl.innerHTML = iconSVG(state.exerciseIcon);
 
     var dots = "";
     for (var i = 1; i <= state.sets; i++) {
