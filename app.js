@@ -256,6 +256,8 @@
     sets: 3,
     reps: 12,
     rest: 60,
+    weight: 20,
+    setWeights: [],
     currentSet: 1,
     completedSets: 0,
     isResting: false,
@@ -267,6 +269,7 @@
   var SETS_MIN = 1, SETS_MAX = 10;
   var REPS_MIN = 10, REPS_MAX = 30;
   var REST_MIN = 10, REST_MAX = 300, REST_STEP = 10;
+  var WEIGHT_MIN = 5, WEIGHT_MAX = 100, WEIGHT_STEP = 5;
 
   function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
 
@@ -493,10 +496,12 @@
       state.sets = clamp(last.sets, SETS_MIN, SETS_MAX);
       state.reps = clamp(last.reps, REPS_MIN, REPS_MAX);
       state.rest = clamp(last.rest, REST_MIN, REST_MAX);
+      state.weight = clamp(last.weight != null ? last.weight : 20, WEIGHT_MIN, WEIGHT_MAX);
     } else {
       state.sets = 3;
       state.reps = 12;
       state.rest = 60;
+      state.weight = 20;
     }
     renderSetup();
     showScreen("setup");
@@ -575,9 +580,10 @@
   });
 
   function startWorkout() {
-    saveLastSettings(state.exercise, { sets: state.sets, reps: state.reps, rest: state.rest });
+    saveLastSettings(state.exercise, { sets: state.sets, reps: state.reps, rest: state.rest, weight: state.weight });
     state.currentSet = 1;
     state.completedSets = 0;
+    state.setWeights = [];
     state.isResting = false;
     state.startedAt = Date.now();
     renderWorkout();
@@ -626,12 +632,39 @@
         '</div>' +
         '<div class="reps-target"><div class="reps-value">목표 ' + state.reps + '회</div>' +
         '<div class="reps-label">이 세트에서 수행할 횟수</div></div>' +
+        '<div class="weight-block">' +
+        '<div class="weight-label">이번 세트 무게</div>' +
+        '<div class="weight-controls">' +
+        '<button class="weight-btn" id="weight-minus" type="button">−</button>' +
+        '<div class="weight-value" id="weight-value">' + state.weight + '<span class="unit">kg</span></div>' +
+        '<button class="weight-btn" id="weight-plus" type="button">+</button>' +
+        '</div></div>' +
         '<button class="complete-set-btn" id="complete-set-btn" type="button">세트 완료 ✓</button>';
       document.getElementById("complete-set-btn").addEventListener("click", completeSet);
+      document.getElementById("weight-minus").addEventListener("click", function () {
+        state.weight = clamp(state.weight - WEIGHT_STEP, WEIGHT_MIN, WEIGHT_MAX);
+        updateWeightDisplay();
+      });
+      document.getElementById("weight-plus").addEventListener("click", function () {
+        state.weight = clamp(state.weight + WEIGHT_STEP, WEIGHT_MIN, WEIGHT_MAX);
+        updateWeightDisplay();
+      });
+      updateWeightDisplay();
     }
   }
 
+  function updateWeightDisplay() {
+    var valueEl = document.getElementById("weight-value");
+    var minusBtn = document.getElementById("weight-minus");
+    var plusBtn = document.getElementById("weight-plus");
+    if (!valueEl) return;
+    valueEl.innerHTML = state.weight + '<span class="unit">kg</span>';
+    minusBtn.disabled = state.weight <= WEIGHT_MIN;
+    plusBtn.disabled = state.weight >= WEIGHT_MAX;
+  }
+
   function completeSet() {
+    state.setWeights.push(state.weight);
     state.completedSets++;
     vibrate(60);
     if (state.completedSets >= state.sets) {
@@ -687,6 +720,7 @@
 
   function finishWorkout() {
     stopTimer();
+    saveLastSettings(state.exercise, { sets: state.sets, reps: state.reps, rest: state.rest, weight: state.weight });
     var record = {
       part: state.part,
       group: state.group,
@@ -695,6 +729,7 @@
       reps: state.reps,
       rest: state.rest,
       completedSets: state.completedSets,
+      setWeights: state.setWeights.slice(),
       startedAt: state.startedAt,
       finishedAt: Date.now()
     };
@@ -717,6 +752,7 @@
       '<div class="summary-card">' +
       '<div class="summary-row"><span class="k">부위</span><span class="v">' + record.part + ' · ' + record.group + '</span></div>' +
       '<div class="summary-row"><span class="k">완료 세트</span><span class="v">' + record.completedSets + ' / ' + record.sets + '세트</span></div>' +
+      '<div class="summary-row"><span class="k">세트별 무게</span><span class="v">' + record.setWeights.map(function (w) { return w + "kg"; }).join(" · ") + '</span></div>' +
       '<div class="summary-row"><span class="k">목표 횟수</span><span class="v">' + record.reps + '회</span></div>' +
       '<div class="summary-row"><span class="k">휴식 시간</span><span class="v">' + formatSeconds(record.rest) + '</span></div>' +
       '<div class="summary-row"><span class="k">소요 시간</span><span class="v">약 ' + Math.max(durationMin, 1) + '분</span></div>' +
@@ -765,12 +801,14 @@
     order.forEach(function (key) {
       html += '<div class="history-day"><div class="history-day-title">' + formatDateLabel(key) + '</div>';
       groups[key].forEach(function (r) {
+        var weights = r.setWeights || [];
         html += '<div class="history-card">' +
           '<div class="h-top"><span class="h-name">' + r.exercise + '</span><span class="h-time">' + formatTime(r.finishedAt) + '</span></div>' +
           '<div>' +
           '<span class="h-tag">' + r.part + ' · ' + r.group + '</span>' +
           '<span class="h-tag">' + r.completedSets + '/' + r.sets + '세트</span>' +
           '<span class="h-tag">' + r.reps + '회</span>' +
+          (weights.length ? '<span class="h-tag">' + weights.map(function (w) { return w + "kg"; }).join("·") + '</span>' : "") +
           '<span class="h-tag">휴식 ' + formatSeconds(r.rest) + '</span>' +
           '</div></div>';
       });

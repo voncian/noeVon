@@ -393,6 +393,42 @@ input[type="range"] {
 .reps-target .reps-value { font-size: 20px; font-weight: 800; }
 .reps-target .reps-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
 
+.weight-block {
+  text-align: center;
+  margin: 0 0 26px;
+}
+.weight-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.weight-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+.weight-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.weight-btn:active { background: var(--card-hover); }
+.weight-btn:disabled { opacity: 0.35; cursor: default; }
+.weight-value {
+  font-size: 28px;
+  font-weight: 900;
+  min-width: 90px;
+}
+.weight-value .unit { font-size: 14px; color: var(--text-dim); font-weight: 700; margin-left: 3px; }
+
 .complete-set-btn {
   width: 100%;
   background: var(--primary);
