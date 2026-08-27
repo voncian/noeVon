@@ -541,10 +541,6 @@
   var photoContent = document.getElementById("photo-content");
   var photoInput = document.getElementById("photo-input");
 
-  document.getElementById("home-photo-btn").addEventListener("click", function () {
-    photoInput.click();
-  });
-
   photoInput.addEventListener("change", function (e) {
     var file = e.target.files && e.target.files[0];
     e.target.value = "";

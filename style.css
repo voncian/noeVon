@@ -111,6 +111,18 @@ body {
 .back-row { padding: 0 20px; }
 .hidden { display: none !important; }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .btn-back {
   background: none;
   border: none;
@@ -161,6 +173,9 @@ body {
   border-radius: 50%;
   font-size: 16px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ---------- Part cards (상체/하체) ---------- */
