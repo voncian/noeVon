@@ -1,0 +1,20 @@
+{
+  "name": "웨이트 카운터",
+  "short_name": "웨이트카운터",
+  "description": "부위별 웨이트 종목의 세트, 횟수, 휴식시간을 기록하는 운동 카운터",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1115",
+  "theme_color": "#0f1115",
+  "orientation": "portrait",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
