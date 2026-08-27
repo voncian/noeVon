@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="웨이트 카운터">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
+<title>웨이트 카운터</title>
+</head>
+<body>
+<div id="app" class="app">
+
+  <!-- 홈 화면: 부위 -> 근육그룹 -> 종목 선택 -->
+  <section id="screen-home" class="screen active">
+    <header class="topbar">
+      <h1 id="home-title">오늘의 운동</h1>
+      <p id="home-subtitle" class="subtitle">부위를 선택하세요</p>
+    </header>
+    <div id="home-stats" class="stats-row"></div>
+    <div id="home-back-row" class="back-row hidden">
+      <button id="home-back-btn" class="btn-back" type="button">← 뒤로</button>
+    </div>
+    <main id="home-content" class="content"></main>
+  </section>
+
+  <!-- 세트/횟수/휴식시간 설정 화면 -->
+  <section id="screen-setup" class="screen">
+    <header class="topbar">
+      <button class="btn-back" id="setup-back-btn" type="button">← 뒤로</button>
+      <div class="exercise-heading">
+        <span id="setup-exercise-icon" class="ex-icon lg"></span>
+        <div class="exercise-heading-text">
+          <h1 id="setup-exercise-name">종목명</h1>
+          <p id="setup-breadcrumb" class="subtitle"></p>
+        </div>
+      </div>
+    </header>
+    <main class="content" id="setup-content"></main>
+    <div class="bottom-action">
+      <button id="start-workout-btn" class="btn-primary btn-large" type="button">운동 시작하기</button>
+    </div>
+  </section>
+
+  <!-- 운동(세트 카운트/휴식 타이머) 화면 -->
+  <section id="screen-workout" class="screen">
+    <header class="topbar">
+      <button class="btn-icon" id="workout-cancel-btn" type="button" aria-label="종료">✕</button>
+      <div class="exercise-heading">
+        <span id="workout-exercise-icon" class="ex-icon lg"></span>
+        <div class="exercise-heading-text">
+          <h1 id="workout-exercise-name">종목명</h1>
+          <p id="workout-breadcrumb" class="subtitle"></p>
+        </div>
+      </div>
+    </header>
+    <main class="content" id="workout-content"></main>
+  </section>
+
+  <!-- 운동 완료 화면 -->
+  <section id="screen-complete" class="screen">
+    <main class="content complete-content" id="complete-content"></main>
+  </section>
+
+  <!-- 기록 화면 -->
+  <section id="screen-history" class="screen">
+    <header class="topbar">
+      <h1>운동 기록</h1>
+      <p class="subtitle">완료한 세트를 확인하세요</p>
+    </header>
+    <main class="content" id="history-content"></main>
+  </section>
+
+  <nav id="bottom-nav" class="bottom-nav">
+    <button class="nav-btn active" data-nav="home" type="button">
+      <span class="nav-icon">🏠</span><span>홈</span>
+    </button>
+    <button class="nav-btn" data-nav="history" type="button">
+      <span class="nav-icon">📊</span><span>기록</span>
+    </button>
+  </nav>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
