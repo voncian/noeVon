@@ -21,12 +21,23 @@
     <header class="topbar">
       <h1 id="home-title">오늘의 운동</h1>
       <p id="home-subtitle" class="subtitle">부위를 선택하세요</p>
+      <button class="btn-icon" id="home-photo-btn" type="button" aria-label="사진으로 종목 찾기">📷</button>
     </header>
     <div id="home-stats" class="stats-row"></div>
     <div id="home-back-row" class="back-row hidden">
       <button id="home-back-btn" class="btn-back" type="button">← 뒤로</button>
     </div>
     <main id="home-content" class="content"></main>
+  </section>
+
+  <!-- 사진으로 종목 찾기/추가 -->
+  <section id="screen-photo" class="screen">
+    <header class="topbar">
+      <button class="btn-back" id="photo-back-btn" type="button">← 뒤로</button>
+      <h1>사진으로 종목 찾기</h1>
+      <p class="subtitle">촬영한 사진과 어울리는 종목을 선택하세요</p>
+    </header>
+    <main class="content" id="photo-content"></main>
   </section>
 
   <!-- 세트/횟수/휴식시간 설정 화면 -->
@@ -85,6 +96,7 @@
     </button>
   </nav>
 
+  <input type="file" id="photo-input" accept="image/*" capture="environment" class="hidden">
 </div>
 <script src="app.js"></script>
 </body>
